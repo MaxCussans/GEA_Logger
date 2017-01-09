@@ -33,7 +33,7 @@ int frameCount = 0;
 std::string frameLine = "";
 char* filepath = "";
 Parse parse;
-std::vector <glm::vec3> coordinates;
+std::vector <GLfloat> coordinates;
 // end::globalVariables[]
 
 
@@ -66,13 +66,8 @@ const std::string strFragmentShader = R"(
 //our variables
 bool done = false;
 
-//the data about our geometry
-const GLfloat vertexData[] = {
-	//	X			Y
-	0.000f,	0.500f,
-	-0.433f,	-0.250f,
-	0.433f,	-0.250f,
-};
+
+
 
 //the color we'll pass to the GLSL
 GLfloat color[] = { 1.0f, 1.0f, 1.0f }; //using different values from CPU and static GLSL examples, to make it clear this is working
@@ -268,7 +263,7 @@ void initializeProgram()
 
 // tag::initializeVertexArrayObject[]
 //setup a GL object (a VertexArrayObject) that stores how to access data and from where
-void initializeVertexArrayObject()
+void initializeTrajectoryVertexArrayObject()
 {
 	glGenVertexArrays(1, &vertexArrayObject); //create a Vertex Array Object
 	cout << "Vertex Array Object created OK! GLUint is: " << vertexArrayObject << std::endl;
@@ -279,7 +274,7 @@ void initializeVertexArrayObject()
 
 	glEnableVertexAttribArray(positionLocation); //enable attribute at index positionLocation
 
-	glVertexAttribPointer(positionLocation, 2, GL_FLOAT, GL_FALSE, 0, 0); //specify that position data contains four floats per vertex, and goes into attribute index positionLocation
+	glVertexAttribPointer(positionLocation, 3, GL_FLOAT, GL_FALSE, 0, 0); //specify that position data contains four floats per vertex, and goes into attribute index positionLocation
 
 	glBindVertexArray(0); //unbind the vertexArrayObject so we can't change it
 
@@ -291,16 +286,16 @@ void initializeVertexArrayObject()
 // end::initializeVertexArrayObject[]
 
 // tag::initializeVertexBuffer[]
-void initializeVertexBuffer()
+void initializeTrajectoryVertexBuffer()
 {
 	glGenBuffers(1, &vertexDataBufferObject);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vertexDataBufferObject);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, coordinates.size() * sizeof(GLfloat), &coordinates.front(), GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	cout << "vertexDataBufferObject created OK! GLUint is: " << vertexDataBufferObject << std::endl;
 
-	initializeVertexArrayObject();
+	initializeTrajectoryVertexArrayObject();
 }
 // end::initializeVertexBuffer[]
 
@@ -308,8 +303,6 @@ void initializeVertexBuffer()
 void loadAssets()
 {
 	initializeProgram(); //create GLSL Shaders, link into a GLSL program, and get IDs of attributes and variables
-
-	initializeVertexBuffer(); //load data into a vertex buffer
 
 	cout << "Loaded Assets OK!\n";
 }
@@ -356,8 +349,10 @@ void handleInput()
 
 		case SDL_DROPFILE:
 		{
+			//when file is dropped on window store the coordinates in a vector of vec3s
 			filepath = event.drop.file;
 			coordinates = parse.ParsePositionData(filepath);
+			initializeTrajectoryVertexBuffer();
 		}
 		break;
 		}
@@ -391,12 +386,13 @@ void render()
 
 							  //load data to GLSL that **may** have changed
 	glUniform3f(colorLocation, color[0], color[1], color[2]);
-	//alternatively, use glUnivform2fv
-	//glUniform2fv(colorLocation, 1, color); //Note: the count is 1, because we are setting a single uniform vec2 - https://www.opengl.org/wiki/GLSL_:_common_mistakes#How_to_use_glUniform
+	
 
 	glBindVertexArray(vertexArrayObject);
 
-	glDrawArrays(GL_TRIANGLES, 0, 3); //Draw something, using Triangles, and 3 vertices - i.e. one lonely triangle
+	glLineWidth(5);
+
+	glDrawArrays(GL_LINE_STRIP, 0, coordinates.size() / 3); //Draw Lines
 
 	glBindVertexArray(0);
 
