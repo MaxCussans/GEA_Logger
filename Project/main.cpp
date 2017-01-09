@@ -31,7 +31,11 @@ SDL_Window *win; //pointer to the SDL_Window
 SDL_GLContext context; //the SDL_GLContext
 int frameCount = 0;
 std::string frameLine = "";
+char* filepath = "";
+Parse parse;
+std::vector <glm::vec3> coordinates;
 // end::globalVariables[]
+
 
 // tag::vertexShader[]
 //string holding the **source** of our vertex shader, to save loading from a file
@@ -349,6 +353,13 @@ void handleInput()
 				case SDLK_ESCAPE: done = true;
 				}
 			break;
+
+		case SDL_DROPFILE:
+		{
+			filepath = event.drop.file;
+			coordinates = parse.ParsePositionData(filepath);
+		}
+		break;
 		}
 	}
 }
