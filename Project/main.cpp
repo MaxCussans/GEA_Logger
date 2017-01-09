@@ -391,7 +391,7 @@ void render()
 	glBindVertexArray(vertexArrayObject);
 
 	glLineWidth(5);
-
+	//draw line for trajectory
 	glDrawArrays(GL_LINE_STRIP, 0, coordinates.size() / 3); //Draw Lines
 
 	glBindVertexArray(0);
