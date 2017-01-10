@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <string>
 #include "build/Parse.h"
+#include "build/Heatmap.h"
 #include <GL/glew.h>
 #include <SDL2/SDL.h>
 // end::includes[]
@@ -33,7 +34,10 @@ int frameCount = 0;
 std::string frameLine = "";
 char* filepath = "";
 Parse parse;
+Heatmap heatmap;
 std::vector <GLfloat> coordinates;
+std::vector <GLfloat> heatmapSquares;
+bool showHeatmap = false;
 // end::globalVariables[]
 
 
@@ -80,6 +84,10 @@ GLint colorLocation; //GLuint that we'll fill in with the location of the `color
 
 GLuint vertexDataBufferObject;
 GLuint vertexArrayObject;
+
+
+GLuint heatmapVertexDataBufferObject;
+GLuint heatmapVertexArrayObject;
 
 // end::ourVariables[]
 
@@ -299,6 +307,40 @@ void initializeTrajectoryVertexBuffer()
 }
 // end::initializeVertexBuffer[]
 
+void initializeHeatmapVertexArrayObject()
+{
+	glGenVertexArrays(1, &heatmapVertexArrayObject); //create a Vertex Array Object
+	cout << "Vertex Array Object created OK! GLUint is: " << heatmapVertexArrayObject << std::endl;
+
+	glBindVertexArray(heatmapVertexArrayObject); //make the just created vertexArrayObject the active one
+
+	glBindBuffer(GL_ARRAY_BUFFER, vertexDataBufferObject); //bind vertexDataBufferObject
+
+	glEnableVertexAttribArray(positionLocation); //enable attribute at index positionLocation
+
+	glVertexAttribPointer(positionLocation, 3, GL_FLOAT, GL_FALSE, 0, 0); //specify that position data contains four floats per vertex, and goes into attribute index positionLocation
+
+	glBindVertexArray(0); //unbind the vertexArrayObject so we can't change it
+
+						  //cleanup
+	glDisableVertexAttribArray(positionLocation); //disable vertex attribute at index positionLocation
+	glBindBuffer(GL_ARRAY_BUFFER, 0); //unbind array buffer
+
+}
+
+void initializeHeatmapVertexBuffer()
+{
+	glGenBuffers(1, &heatmapVertexDataBufferObject);
+
+	glBindBuffer(GL_ARRAY_BUFFER, heatmapVertexDataBufferObject);
+	glBufferData(GL_ARRAY_BUFFER, heatmapSquares.size() * sizeof(GLfloat), &heatmapSquares.front(), GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	cout << "vertexDataBufferObject created OK! GLUint is: " << heatmapVertexDataBufferObject << std::endl;
+
+	initializeHeatmapVertexArrayObject();
+
+}
+
 // tag::loadAssets[]
 void loadAssets()
 {
@@ -344,6 +386,17 @@ void handleInput()
 				{
 					//hit escape to exit
 				case SDLK_ESCAPE: done = true;
+					break;
+
+				case SDLK_SPACE:
+					//show heatmap
+					heatmapSquares = heatmap.CreateHeatmap();
+					initializeHeatmapVertexBuffer();
+					showHeatmap = true;
+
+					break;
+
+
 				}
 			break;
 
@@ -393,6 +446,13 @@ void render()
 	glLineWidth(5);
 	//draw line for trajectory
 	glDrawArrays(GL_LINE_STRIP, 0, coordinates.size() / 3); //Draw Lines
+
+	if (showHeatmap == true)
+	{
+		glBindVertexArray(heatmapVertexArrayObject);
+		
+		glDrawArrays(GL_QUADS, 0, 4);
+	}
 
 	glBindVertexArray(0);
 
