@@ -45,10 +45,13 @@ bool showHeatmap = false;
 //string holding the **source** of our vertex shader, to save loading from a file
 const std::string strVertexShader = R"(
 	#version 330
-	in vec2 position;
+	in vec4 position;
+	in vec4 vertexColor;
+	out vec4 fragmentColor;
 	void main()
 	{
 		 gl_Position = vec4(position, 0.0, 1.0);
+		 fragmentColor = vertexColor;
 	}
 )";
 // end::vertexShader[]
@@ -57,11 +60,11 @@ const std::string strVertexShader = R"(
 //string holding the **source** of our fragment shader, to save loading from a file
 const std::string strFragmentShader = R"(
 	#version 330
+	in vec4 fragmentColor;
 	out vec4 outputColor;
-	uniform vec3 color;
 	void main()
 	{
-		 outputColor = vec4(color, 1.0f);
+		  outputColor = fragmentColor;
 	}
 )";
 // end::fragmentShader[]
@@ -73,8 +76,7 @@ bool done = false;
 
 
 
-//the color we'll pass to the GLSL
-GLfloat color[] = { 1.0f, 1.0f, 1.0f }; //using different values from CPU and static GLSL examples, to make it clear this is working
+//the color we'll pass to the GLSL //using different values from CPU and static GLSL examples, to make it clear this is working
 
 										//our GL and GLSL variables
 
@@ -263,7 +265,7 @@ void initializeProgram()
 	}
 
 	positionLocation = glGetAttribLocation(theProgram, "position");
-	colorLocation = glGetUniformLocation(theProgram, "color");
+	colorLocation = glGetUniformLocation(theProgram, "vertexColor");
 	//clean up shaders (we don't need them anymore as they are no in theProgram
 	for_each(shaderList.begin(), shaderList.end(), glDeleteShader);
 }
@@ -310,15 +312,17 @@ void initializeTrajectoryVertexBuffer()
 void initializeHeatmapVertexArrayObject()
 {
 	glGenVertexArrays(1, &heatmapVertexArrayObject); //create a Vertex Array Object
-	cout << "Vertex Array Object created OK! GLUint is: " << heatmapVertexArrayObject << std::endl;
+	cout << "Heatmap Vertex Array Object created GLUint is: " << heatmapVertexArrayObject << std::endl;
 
 	glBindVertexArray(heatmapVertexArrayObject); //make the just created vertexArrayObject the active one
 
-	glBindBuffer(GL_ARRAY_BUFFER, vertexDataBufferObject); //bind vertexDataBufferObject
+	glBindBuffer(GL_ARRAY_BUFFER, heatmapVertexDataBufferObject); //bind vertexDataBufferObject
 
 	glEnableVertexAttribArray(positionLocation); //enable attribute at index positionLocation
+	glEnableVertexAttribArray(colorLocation);
 
-	glVertexAttribPointer(positionLocation, 3, GL_FLOAT, GL_FALSE, 0, 0); //specify that position data contains four floats per vertex, and goes into attribute index positionLocation
+	glVertexAttribPointer(positionLocation, 3, GL_FLOAT, GL_FALSE, (7 * sizeof(GL_FLOAT)), (GLvoid *)(0 * sizeof(GLfloat))); //specify that position data contains four floats per vertex, and goes into attribute index positionLocation
+	glVertexAttribPointer(colorLocation, 4, GL_FLOAT, GL_FALSE, (7 * sizeof(GL_FLOAT)), (GLvoid *)(3 * sizeof(GLfloat)));
 
 	glBindVertexArray(0); //unbind the vertexArrayObject so we can't change it
 
@@ -333,9 +337,9 @@ void initializeHeatmapVertexBuffer()
 	glGenBuffers(1, &heatmapVertexDataBufferObject);
 
 	glBindBuffer(GL_ARRAY_BUFFER, heatmapVertexDataBufferObject);
-	glBufferData(GL_ARRAY_BUFFER, heatmapSquares.size() * sizeof(GLfloat), &heatmapSquares.front(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, heatmapSquares.size() * sizeof(GLfloat), &heatmapSquares.front(), GL_DYNAMIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	cout << "vertexDataBufferObject created OK! GLUint is: " << heatmapVertexDataBufferObject << std::endl;
+	cout << "Heatmap vertexDataBufferObject created OK! GLUint is: " << heatmapVertexDataBufferObject << std::endl;
 
 	initializeHeatmapVertexArrayObject();
 
@@ -391,9 +395,21 @@ void handleInput()
 				case SDLK_SPACE:
 					//show heatmap
 					heatmapSquares = heatmap.CreateHeatmap();
-					initializeHeatmapVertexBuffer();
+					
+						for (int i = 0; i < coordinates.size(); i += 3)
+						{
+							for (int j = 0; j < heatmapSquares.size(); j += 42)
+							{
+								//check if trajectory goes through square
+								if ((/*right of left side*/coordinates[i] >= heatmapSquares[j] &&/*left of right side*/ coordinates[i] <= heatmapSquares[j+14]) && (/*above bottom*/coordinates[i + 1] >= heatmapSquares[j + 8] &&/*lower than top*/ coordinates[i + 1] + 0.05 <= heatmapSquares[j + 1]))
+								{						
+									heatmapSquares[j + 6] = 1.0f;						
+								}
+							}
+						}
+					
 					showHeatmap = true;
-
+					initializeHeatmapVertexBuffer();
 					break;
 
 
@@ -427,7 +443,7 @@ void updateSimulation(double simLength = 0.02) //update simulation with an amoun
 void preRender()
 {
 	glViewport(0, 0, 600, 600); //set viewpoint
-	glClearColor(1.0f, 0.0f, 0.0f, 1.0f); //set clear colour
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f); //set clear colour
 	glClear(GL_COLOR_BUFFER_BIT); //clear the window (technical the scissor box bounds)
 }
 // end::preRender[]
@@ -439,38 +455,17 @@ void render()
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-							  //load data to GLSL that **may** have changed
-	glUniform3f(colorLocation, color[0], color[1], color[2]);
 	
-
 	glBindVertexArray(vertexArrayObject);
 
 	glLineWidth(5);
 	//draw line for trajectory
 	glDrawArrays(GL_LINE_STRIP, 0, coordinates.size() / 3); //Draw Lines
-
-	if (showHeatmap == true)
-	{
-		for (int i = 0; i < coordinates.size(); i + 3)
-		{
-			for (int j = 0; j < heatmapSquares.size(); j + 7)
-			{
-				if ((coordinates[i] + 0.05 <= heatmapSquares[j] && coordinates[i] - 0.05 >= heatmapSquares[j]) && (coordinates[i + 1] + 0.05 <= heatmapSquares[j + 1] && coordinates[i+1] -0.05 >= heatmapSquares[j+1]))
-				{
-					for (int k = 6; k < heatmapSquares.size(); k + 7)
-					{
-						heatmapSquares[k] = 1.0;
-					}
-				}
-			}
-		}
-
-		glBindVertexArray(heatmapVertexArrayObject);
-		
-		glDrawArrays(GL_QUADS, 0, 4);
-	}
-
+	
+	glBindVertexArray(heatmapVertexArrayObject);
+	glDrawArrays(GL_TRIANGLES, 0, heatmapSquares.size() / 7);
+	
+	
 	glBindVertexArray(0);
 
 	glUseProgram(0); //clean up
