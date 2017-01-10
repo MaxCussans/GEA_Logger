@@ -265,7 +265,7 @@ void initializeProgram()
 	}
 
 	positionLocation = glGetAttribLocation(theProgram, "position");
-	colorLocation = glGetUniformLocation(theProgram, "vertexColor");
+	colorLocation = glGetAttribLocation(theProgram, "vertexColor");
 	//clean up shaders (we don't need them anymore as they are no in theProgram
 	for_each(shaderList.begin(), shaderList.end(), glDeleteShader);
 }
@@ -403,7 +403,12 @@ void handleInput()
 								//check if trajectory goes through square
 								if ((/*right of left side*/coordinates[i] >= heatmapSquares[j] &&/*left of right side*/ coordinates[i] <= heatmapSquares[j+14]) && (/*above bottom*/coordinates[i + 1] >= heatmapSquares[j + 8] &&/*lower than top*/ coordinates[i + 1] + 0.05 <= heatmapSquares[j + 1]))
 								{						
-									heatmapSquares[j + 6] = 1.0f;						
+									heatmapSquares[j + 6] += 0.01f;
+									heatmapSquares[j + 13] += 0.01f;
+									heatmapSquares[j + 20] += 0.01f;
+									heatmapSquares[j + 27] += 0.01f;
+									heatmapSquares[j + 34] += 0.01f;
+									heatmapSquares[j + 41] += 0.01f;
 								}
 							}
 						}
