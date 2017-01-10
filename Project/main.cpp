@@ -437,6 +437,9 @@ void render()
 {
 	glUseProgram(theProgram); //installs the program object specified by program as part of current rendering state
 
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 							  //load data to GLSL that **may** have changed
 	glUniform3f(colorLocation, color[0], color[1], color[2]);
 	
@@ -449,6 +452,20 @@ void render()
 
 	if (showHeatmap == true)
 	{
+		for (int i = 0; i < coordinates.size(); i + 3)
+		{
+			for (int j = 0; j < heatmapSquares.size(); j + 7)
+			{
+				if ((coordinates[i] + 0.05 <= heatmapSquares[j] && coordinates[i] - 0.05 >= heatmapSquares[j]) && (coordinates[i + 1] + 0.05 <= heatmapSquares[j + 1] && coordinates[i+1] -0.05 >= heatmapSquares[j+1]))
+				{
+					for (int k = 6; k < heatmapSquares.size(); k + 7)
+					{
+						heatmapSquares[k] = 1.0;
+					}
+				}
+			}
+		}
+
 		glBindVertexArray(heatmapVertexArrayObject);
 		
 		glDrawArrays(GL_QUADS, 0, 4);
