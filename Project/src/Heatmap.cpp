@@ -33,7 +33,6 @@ std::vector<GLfloat> Heatmap::CreateHeatmap()
 	//z coord is always 110.65 in logs
 	GLfloat z = 110.65 / 3000;
 	//heatmap is 20x20
-	GLfloat heatmapsize = 40;
 
 	for (int i = 0; i < heatmapsize; i++)
 	{

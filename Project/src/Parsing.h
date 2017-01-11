@@ -13,19 +13,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 
-class Heatmap
+class Parsing
 {
 public:
-
-	std::vector<GLfloat> data;
-	std::vector<GLfloat> vertexData;
-	GLuint vertBuff;
-	GLuint vertObj;
-	
-	Heatmap();
-	~Heatmap();
-	GLfloat heatmapsize = 40;
-	std::vector<GLfloat> CreateHeatmap();
-	bool squareCheck(float left, float right, float top, float bottom);
+	Parsing();
+	~Parsing();
+	std::vector<GLfloat> ParsePositionData(char* filepath);
 };
-

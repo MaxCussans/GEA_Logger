@@ -35,9 +35,11 @@ std::string frameLine = "";
 char* filepath = "";
 Parse parse;
 Heatmap heatmap;
+std::vector<Heatmap> heatmaps;
 std::vector <GLfloat> coordinates;
 std::vector <GLfloat> heatmapSquares;
-bool showHeatmap = false;
+bool showHeatmap = true;
+int dataset = 0;
 // end::globalVariables[]
 
 
@@ -309,14 +311,14 @@ void initializeTrajectoryVertexBuffer()
 }
 // end::initializeVertexBuffer[]
 
-void initializeHeatmapVertexArrayObject()
+void initializeHeatmapVertexArrayObject(GLuint object, GLuint buffer)
 {
-	glGenVertexArrays(1, &heatmapVertexArrayObject); //create a Vertex Array Object
-	cout << "Heatmap Vertex Array Object created GLUint is: " << heatmapVertexArrayObject << std::endl;
+	glGenVertexArrays(1, &object); //create a Vertex Array Object
+	cout << "Heatmap Vertex Array Object created GLUint is: " << object << std::endl;
 
-	glBindVertexArray(heatmapVertexArrayObject); //make the just created vertexArrayObject the active one
+	glBindVertexArray(object); //make the just created vertexArrayObject the active one
 
-	glBindBuffer(GL_ARRAY_BUFFER, heatmapVertexDataBufferObject); //bind vertexDataBufferObject
+	glBindBuffer(GL_ARRAY_BUFFER, buffer); //bind vertexDataBufferObject
 
 	glEnableVertexAttribArray(positionLocation); //enable attribute at index positionLocation
 	glEnableVertexAttribArray(colorLocation);
@@ -332,16 +334,16 @@ void initializeHeatmapVertexArrayObject()
 
 }
 
-void initializeHeatmapVertexBuffer()
+void initializeHeatmapVertexBuffer(std::vector<GLfloat> data, GLuint object, GLuint buffer)
 {
-	glGenBuffers(1, &heatmapVertexDataBufferObject);
+	glGenBuffers(1, &buffer);
 
-	glBindBuffer(GL_ARRAY_BUFFER, heatmapVertexDataBufferObject);
-	glBufferData(GL_ARRAY_BUFFER, heatmapSquares.size() * sizeof(GLfloat), &heatmapSquares.front(), GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, buffer);
+	glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(GLfloat), &data.front(), GL_DYNAMIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	cout << "Heatmap vertexDataBufferObject created OK! GLUint is: " << heatmapVertexDataBufferObject << std::endl;
+	cout << "Heatmap vertexDataBufferObject created OK! GLUint is: " << buffer << std::endl;
 
-	initializeHeatmapVertexArrayObject();
+	initializeHeatmapVertexArrayObject(object, buffer);
 
 }
 
@@ -394,29 +396,35 @@ void handleInput()
 
 				case SDLK_SPACE:
 					//show heatmap
-					heatmapSquares = heatmap.CreateHeatmap();
-
-					for (int i = 0; i < coordinates.size(); i += 3)
+					for (int x = 0; x < heatmaps.size(); x++)
 					{
-						for (int j = 0; j < heatmapSquares.size(); j += 42)
-						{
-							//check if trajectory goes through square
-							if ((/*right of left side*/coordinates[i] >= heatmapSquares[j] &&/*left of right side*/ coordinates[i] <= heatmapSquares[j + 14]) && (/*above bottom*/coordinates[i + 1] >= heatmapSquares[j + 8] &&/*lower than top*/ coordinates[i + 1] <= heatmapSquares[j + 1]))
-							{
-								heatmapSquares[j + 6] += 0.01f;
-								heatmapSquares[j + 13] += 0.01f;
-								heatmapSquares[j + 20] += 0.01f;
-								heatmapSquares[j + 27] += 0.01f;
-								heatmapSquares[j + 34] += 0.01f;
-								heatmapSquares[j + 41] += 0.01f;
-							}
-						}
-					}
+						//heatmapSquares = heatmap.CreateHeatmap();
+						//heatmaps[x].vertBuff = heatmaps.size();
+						//heatmaps[x].vertObj = heatmaps.size();
+						//heatmaps[x].vertexData = heatmaps[x].CreateHeatmap();
 
-					initializeHeatmapVertexBuffer();
+						//for (int i = 0; i < heatmaps[x].data.size(); i += 3)
+						//{
+						//	for (int j = 0; j < heatmaps[x].vertexData.size(); j += 42)
+						//	{
+						//		//check if trajectory goes through square
+						//		if ((/*right of left side*/heatmaps[x].data[i] >= heatmaps[x].vertexData[j] &&/*left of right side*/ heatmaps[x].data[i] <= heatmaps[x].vertexData[j + 14]) && (/*above bottom*/heatmaps[x].data[i + 1] >= heatmaps[x].vertexData[j + 8] &&/*lower than top*/ heatmaps[x].data[i + 1] <= heatmaps[x].vertexData[j + 1]))
+						//		{
+						//			heatmaps[x].vertexData[j + 6] += 0.01f;
+						//			heatmaps[x].vertexData[j + 13] += 0.01f;
+						//			heatmaps[x].vertexData[j + 20] += 0.01f;
+						//			heatmaps[x].vertexData[j + 27] += 0.01f;
+						//			heatmaps[x].vertexData[j + 34] += 0.01f;
+						//			heatmaps[x].vertexData[j + 41] += 0.01f;
+						//		}
+						//	}
+						//}
+
+						initializeHeatmapVertexBuffer(heatmaps[x].vertexData, heatmaps[x].vertObj, heatmaps[x].vertBuff);
+					}
 					break;
-			
-					
+
+
 
 				}
 			break;
@@ -425,13 +433,40 @@ void handleInput()
 		{
 			//when file is dropped on window store the coordinates in a vector of vec3s
 			filepath = event.drop.file;
-			coordinates = parse.ParsePositionData(filepath);
+			Heatmap tempHeat = Heatmap();
+			tempHeat.data = parse.ParsePositionData(filepath);
+
+			heatmapSquares = heatmap.CreateHeatmap();
+			tempHeat.vertBuff = heatmaps.size();
+			tempHeat.vertObj = heatmaps.size();
+			tempHeat.vertexData = tempHeat.CreateHeatmap();
+
+			if (showHeatmap == true)
+			{
+				for (int i = 0; i < tempHeat.data.size(); i += 3)
+				{
+					for (int j = 0; j < tempHeat.vertexData.size(); j += 42)
+					{
+						//check if trajectory goes through square
+						if ((/*right of left side*/tempHeat.data[i] >= tempHeat.vertexData[j] &&/*left of right side*/ tempHeat.data[i] <= tempHeat.vertexData[j + 14]) && (/*above bottom*/tempHeat.data[i + 1] >= tempHeat.vertexData[j + 8] &&/*lower than top*/ tempHeat.data[i + 1] <= tempHeat.vertexData[j + 1]))
+						{
+							tempHeat.vertexData[j + 6] += 0.01f;
+							tempHeat.vertexData[j + 13] += 0.01f;
+							tempHeat.vertexData[j + 20] += 0.01f;
+							tempHeat.vertexData[j + 27] += 0.01f;
+							tempHeat.vertexData[j + 34] += 0.01f;
+							tempHeat.vertexData[j + 41] += 0.01f;
+						}
+					}
+				}
+			}
+			heatmaps.push_back(tempHeat);
+			coordinates = tempHeat.data;
 			initializeTrajectoryVertexBuffer();
+			break;
 		}
-		break;
 		}
 	}
-	
 }
 // end::handleInput[]
 
@@ -461,20 +496,17 @@ void render()
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	for (int i = 0; i < heatmaps.size(); i++)
+	{
+		glBindVertexArray(heatmaps[i].vertObj);
+		glDrawArrays(GL_TRIANGLES, 0, heatmaps[i].vertexData.size() / 7);
+	}
 
-	glBindVertexArray(heatmapVertexArrayObject);
-	glDrawArrays(GL_TRIANGLES, 0, heatmapSquares.size() / 7);
-	
 	glBindVertexArray(vertexArrayObject);
-
 
 	glLineWidth(5);
 	//draw line for trajectory
 	glDrawArrays(GL_LINE_STRIP, 0, coordinates.size() / 3); //Draw Lines
-	
-	
-
-	
 	
 	
 	glBindVertexArray(0);
