@@ -1,19 +1,16 @@
-#include "Parsing.h"
+#include "Parse.h"
 
 
-
-Parsing::Parsing()
+Parse::Parse()
 {
 }
 
 
-Parsing::~Parsing()
+Parse::~Parse()
 {
 }
-
-
 //function to parse position log files
-std::vector<GLfloat> Parsing::ParsePositionData(char* filepath)
+std::vector<GLfloat> Parse::ParsePositionData(char* filepath)
 {
 	std::ifstream file;
 	std::string buffer;
@@ -74,7 +71,7 @@ std::vector<GLfloat> Parsing::ParsePositionData(char* filepath)
 					{
 						z = stof(coord);
 						coord = "";
-					}
+					}					
 				}
 
 				coordinatex = (x / 3000) - 0.7;

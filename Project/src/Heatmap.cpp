@@ -1,17 +1,17 @@
-#include "Heatmaps.h"
+#include "Heatmap.h"
 
 
 
-Heatmaps::Heatmaps()
+Heatmap::Heatmap()
 {
 }
 
 
-Heatmaps::~Heatmaps()
+Heatmap::~Heatmap()
 {
 }
 
-std::vector<GLfloat> Heatmaps::CreateHeatmap()
+std::vector<GLfloat> Heatmap::CreateHeatmap()
 {
 	//squares holds coords of squares
 	std::vector<GLfloat> squares;
@@ -98,7 +98,7 @@ std::vector<GLfloat> Heatmaps::CreateHeatmap()
 	return squares;
 }
 
-bool Heatmaps::squareCheck(float left, float right, float top, float bottom)
+bool Heatmap::squareCheck(float left, float right, float top, float bottom)
 {
 	return true;
 }

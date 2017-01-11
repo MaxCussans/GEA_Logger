@@ -13,11 +13,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 
-class Heatmaps
+class Heatmap
 {
 public:
-	Heatmaps();
-	~Heatmaps();
+	Heatmap();
+	~Heatmap();
 	std::vector<GLfloat> CreateHeatmap();
 	bool squareCheck(float left, float right, float top, float bottom);
 };

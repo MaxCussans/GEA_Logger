@@ -13,10 +13,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 
-class Parsing
+class Parse
 {
 public:
-	Parsing();
-	~Parsing();
+	Parse();
+	~Parse();
 	std::vector<GLfloat> ParsePositionData(char* filepath);
 };

@@ -11,8 +11,8 @@
 #include <vector>
 #include <algorithm>
 #include <string>
-#include "src/Parsing.h"
-#include "src/Heatmaps.h"
+#include "src/Parse.h"
+#include "src/Heatmap.h"
 #include <GL/glew.h>
 #include <SDL2/SDL.h>
 // end::includes[]
@@ -33,8 +33,8 @@ SDL_GLContext context; //the SDL_GLContext
 int frameCount = 0;
 std::string frameLine = "";
 char* filepath = "";
-Parsing parse;
-Heatmaps heatmap;
+Parse parse;
+Heatmap heatmap;
 std::vector <GLfloat> coordinates[];
 std::vector <GLfloat> heatmapSquares[];
 bool showHeatmap = false;
