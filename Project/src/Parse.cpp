@@ -19,6 +19,10 @@ std::vector<GLfloat> Parse::ParsePositionData(char* filepath)
 	GLfloat coordinatex;
 	GLfloat coordinatey;
 	GLfloat coordinatez;
+	GLfloat r = 1.0f;
+	GLfloat g = 0.0f;
+	GLfloat b = 0.0f;
+	GLfloat a = 1.0f;
 
 	if (filepath != nullptr)
 	{
@@ -80,6 +84,11 @@ std::vector<GLfloat> Parse::ParsePositionData(char* filepath)
 				trajectory.push_back(coordinatex);
 				trajectory.push_back(coordinatey);
 				trajectory.push_back(coordinatez);
+				trajectory.push_back(r);
+				trajectory.push_back(g);
+				trajectory.push_back(b);
+				trajectory.push_back(a);
+
 
 			}
 		}

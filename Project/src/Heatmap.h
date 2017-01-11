@@ -21,6 +21,8 @@ public:
 	std::vector<GLfloat> vertexData;
 	GLuint vertBuff;
 	GLuint vertObj;
+	GLuint trajectoryVertBuff;
+	GLuint trajectoryVertObj;
 	
 	Heatmap();
 	~Heatmap();
